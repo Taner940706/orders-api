@@ -23,7 +23,7 @@ def get_db():
 
 class OrdersRequest(BaseModel):
     added_date: str
-    owner: str = Field(min_length=3, max_length=15)
+    owner: int
 
 
 class ProductsRequest(BaseModel):
@@ -69,4 +69,29 @@ async def create_order(db: Annotated[Session, Depends(get_db)], order_request: O
 async def create_product(db: Annotated[Session, Depends(get_db)], product_request: ProductsRequest):
     product_request = Products(**product_request.dict())
     db.add(product_request)
+    db.commit()
+
+
+@app.put('/orders/{order_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def update_order_by_id(db: Annotated[Session, Depends(get_db)], order_request: OrdersRequest, order_id: int):
+    order_model = db.query(Orders).filter(Orders.id == order_id).first()
+    if order_model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found!")
+    order_model.added_date = order_request.added_date
+    order_model.owner_id = order_request.owner
+
+    db.add(order_model)
+    db.commit()
+
+
+@app.put('/products/{product}', status_code=status.HTTP_204_NO_CONTENT)
+async def update_product_by_id(db: Annotated[Session, Depends(get_db)], product_request: ProductsRequest, product_id: int):
+    product_model = db.query(Products).filter(Products.id == product_id).first()
+    if product_model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found!")
+    product_model.product_name = product_request.product_name
+    product_model.price = product_request.price
+    product_model.description = product_request.description
+
+    db.add(product_model)
     db.commit()
