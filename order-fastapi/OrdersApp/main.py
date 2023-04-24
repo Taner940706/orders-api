@@ -95,3 +95,21 @@ async def update_product_by_id(db: Annotated[Session, Depends(get_db)], product_
 
     db.add(product_model)
     db.commit()
+
+
+@app.delete('/orders/{order_id}')
+async def delete_order_by_id(db: Annotated[Session, Depends(get_db)], order_id: int):
+    order_model = db.query(Orders).filter(Orders.id == order_id).first()
+    if order_model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+    db.query(Orders).filter(Orders.id == order_id).delete()
+    db.commit()
+
+
+@app.delete('/products/{product_id}')
+async def delete_product_by_id(db: Annotated[Session, Depends(get_db)], product_id: int):
+    product_model = db.query(Products).filter(Products.id == product_id).first()
+    if product_model is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    db.query(Products).filter(Products.id == product_id).delete()
+    db.commit()
