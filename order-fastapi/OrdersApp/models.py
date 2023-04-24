@@ -30,7 +30,7 @@ class Products(Base):
     price = Column(Float)
     description = Column(String)
 
-    
+
 class OrderDetails(Base):
 
     __tablename__ = 'orderdetails'
