@@ -8,6 +8,7 @@ from starlette import status
 from database import SessionLocal
 from models import Users
 from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordRequestForm
 
 routers = APIRouter()
 
@@ -30,6 +31,15 @@ def get_db():
         db.close()
 
 
+def authenticate_user(username: str, password: str, db):
+    user = db.query(Users).filter(Users.username == username).first()
+    if not user:
+        return False
+    if not bcrypt_context.verify(password, user.password):
+        return False
+    return True
+
+
 @routers.post('/auth', status_code=status.HTTP_201_CREATED)
 async def create_user(create_user_request: CreateUserRequest, db: Annotated[Session, Depends(get_db)]):
     create_user_request = Users(
@@ -42,3 +52,11 @@ async def create_user(create_user_request: CreateUserRequest, db: Annotated[Sess
 
     db.add(create_user_request)
     db.commit()
+
+
+@routers.post('/token')
+async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Annotated[Session, Depends(get_db)]):
+    user = authenticate_user(form_data.username, form_data.password, db)
+    if not user:
+        return "failed"
+    return "successful"
