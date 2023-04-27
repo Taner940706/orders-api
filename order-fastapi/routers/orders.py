@@ -26,8 +26,8 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
 @routers.get('/orders', status_code=status.HTTP_200_OK)
-async def read_all_orders(db: Annotated[Session, Depends(get_db)]):
-    return db.query(Orders).all()
+async def read_all_orders(user: user_dependency, db: Annotated[Session, Depends(get_db)]):
+    return db.query(Orders).filter(Orders.owner_id == user.get('id')).all()
 
 
 @routers.get('/orders/{order_id}', status_code=status.HTTP_200_OK)
