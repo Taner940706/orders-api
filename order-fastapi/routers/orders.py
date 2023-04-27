@@ -6,9 +6,8 @@ from sqlalchemy.orm import Session
 from models import Orders
 from database import SessionLocal
 from starlette import status
-
+from .auth import get_current_user
 routers = APIRouter()
-
 
 def get_db():
     db = SessionLocal()
@@ -21,6 +20,9 @@ def get_db():
 class OrdersRequest(BaseModel):
     added_date: str
     owner: int
+
+
+user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
 @routers.get('/orders', status_code=status.HTTP_200_OK)
@@ -37,8 +39,10 @@ async def get_order_by_id(db: Annotated[Session, Depends(get_db)], order_id: int
 
 
 @routers.post('/orders/order', status_code=status.HTTP_201_CREATED)
-async def create_order(db: Annotated[Session, Depends(get_db)], order_request: OrdersRequest):
-    order_model = Orders(**order_request.dict())
+async def create_order(user: user_dependency,db: Annotated[Session, Depends(get_db)], order_request: OrdersRequest):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication is failed!")
+    order_model = Orders(**order_request.dict(), owner_id=user.get('id'))
     db.add(order_model)
     db.commit()
 
