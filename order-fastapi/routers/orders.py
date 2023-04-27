@@ -52,8 +52,10 @@ async def create_order(user: user_dependency,db: Annotated[Session, Depends(get_
 
 
 @routers.put('/orders/{order_id}', status_code=status.HTTP_204_NO_CONTENT)
-async def update_order_by_id(db: Annotated[Session, Depends(get_db)], order_request: OrdersRequest, order_id: int):
-    order_model = db.query(Orders).filter(Orders.id == order_id).first()
+async def update_order_by_id(user: user_dependency, db: Annotated[Session, Depends(get_db)], order_request: OrdersRequest, order_id: int):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication is failed!")
+    order_model = db.query(Orders).filter(Orders.id == order_id).filter(Orders.owner_id == user.get('id')).first()
     if order_model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found!")
     order_model.added_date = order_request.added_date
