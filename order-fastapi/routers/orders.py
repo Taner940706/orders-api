@@ -27,12 +27,16 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 
 @routers.get('/orders', status_code=status.HTTP_200_OK)
 async def read_all_orders(user: user_dependency, db: Annotated[Session, Depends(get_db)]):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication is failed!")
     return db.query(Orders).filter(Orders.owner_id == user.get('id')).all()
 
 
 @routers.get('/orders/{order_id}', status_code=status.HTTP_200_OK)
-async def get_order_by_id(db: Annotated[Session, Depends(get_db)], order_id: int):
-    order_model = db.query(Orders).filter(Orders.id == order_id).first()
+async def get_order_by_id(user: user_dependency, db: Annotated[Session, Depends(get_db)], order_id: int):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication is failed!")
+    order_model = db.query(Orders).filter(Orders.id == order_id).filter(Orders.owner_id == user.get('id')).first()
     if order_model is not None:
         return order_model
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found!")
