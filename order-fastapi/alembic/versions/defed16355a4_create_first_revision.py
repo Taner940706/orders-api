@@ -16,6 +16,7 @@ branch_labels = None
 depends_on = None
 
 
+# add column for phone number
 def upgrade() -> None:
     op.add_column("users", sa.Column("phone_number", sa.String(), nullable=True))
 

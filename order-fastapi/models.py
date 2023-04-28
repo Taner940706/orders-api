@@ -1,7 +1,8 @@
 from database import Base
-from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, Float
+from sqlalchemy import Column, String, Integer, ForeignKey, Float
 
 
+# users table
 class Users(Base):
 
     __tablename__ = 'users'
@@ -13,16 +14,17 @@ class Users(Base):
     password = Column(String)
 
 
+# orders table
 class Orders(Base):
     __tablename__ = 'orders'
 
     id = Column(Integer, primary_key=True, index=True)
-    added_date = Column(DateTime)
+    added_date = Column(String)
     owner_id = Column(Integer, ForeignKey('users.id'))
 
 
+# products table
 class Products(Base):
-
     __tablename__ = 'products'
 
     id = Column(Integer, primary_key=True, index=True)
@@ -31,8 +33,8 @@ class Products(Base):
     description = Column(String)
 
 
+# order details table
 class OrderDetails(Base):
-
     __tablename__ = 'orderdetails'
 
     id = Column(Integer, primary_key=True, index=True)

@@ -9,6 +9,7 @@ from starlette import status
 routers = APIRouter()
 
 
+# session local for database
 def get_db():
     db = SessionLocal()
     try:
@@ -17,17 +18,20 @@ def get_db():
         db.close()
 
 
+# products base model
 class ProductsRequest(BaseModel):
     product_name: str = Field(min_length=3, max_length=30)
     price: float
     description: str
 
 
+# get all products
 @routers.get('/products/', status_code=status.HTTP_200_OK)
 async def read_all_products(db: Annotated[Session, Depends(get_db)]):
     return db.query(Products).all()
 
 
+# get product by is
 @routers.get('/products/{product_id}', status_code=status.HTTP_200_OK)
 async def get_product_by_id(db: Annotated[Session, Depends(get_db)], product_id: int):
     product_model = db.query(Products).filter(Products.id == product_id).first()
@@ -36,6 +40,7 @@ async def get_product_by_id(db: Annotated[Session, Depends(get_db)], product_id:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found!")
 
 
+# create product
 @routers.post('/products/product', status_code=status.HTTP_201_CREATED)
 async def create_product(db: Annotated[Session, Depends(get_db)], product_request: ProductsRequest):
     product_request = Products(**product_request.dict())
@@ -43,7 +48,8 @@ async def create_product(db: Annotated[Session, Depends(get_db)], product_reques
     db.commit()
 
 
-@routers.put('/products/{product}', status_code=status.HTTP_204_NO_CONTENT)
+# update product by id
+@routers.put('/products/{product_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def update_product_by_id(db: Annotated[Session, Depends(get_db)], product_request: ProductsRequest, product_id: int):
     product_model = db.query(Products).filter(Products.id == product_id).first()
     if product_model is None:
@@ -56,6 +62,7 @@ async def update_product_by_id(db: Annotated[Session, Depends(get_db)], product_
     db.commit()
 
 
+# delete product by id
 @routers.delete('/products/{product_id}')
 async def delete_product_by_id(db: Annotated[Session, Depends(get_db)], product_id: int):
     product_model = db.query(Products).filter(Products.id == product_id).first()
